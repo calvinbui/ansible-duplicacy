@@ -1,0 +1,46 @@
+---
+
+- name: Download duplicacy
+  get_url:
+    url: "{{ duplicacy_url }}"
+    dest: /usr/local/bin/duplicacy
+
+- name: Set dropbox token
+  lineinfile:
+    path: /etc/environment
+    regexp: "^DUPLICACY_DROPBOX_TOKEN="
+    line: "DUPLICACY_DROPBOX_TOKEN={{ duplicacy_dropbox_token }}"
+    state: present
+
+- name: Create backup folder
+  file:
+    path: "{{ backup_folder }}"
+    state: directory
+
+- name: Initialise backups
+  command: "duplicacy -background init backupjob {{ duplicacy_dropbox_folder }}"
+  args:
+    chdir: "{{ duplicacy_backup_folder }}"
+  creates: "{{ duplicacy_backup_folder }}/.duplicacy"
+  register: init_cmd
+  failed_when: "'Error' in init_cmd.stderr"
+  changed_when: "init_cmd.rc != 0"
+
+- name: Create scripts folder
+  file:
+    path: "{{ backup_folder }}/.duplicacy/scripts"
+    state: directory
+
+- name: Make backup script
+  template:
+    src: pre-backup.sh.j2
+    dest: "{{ duplicacy_backup_folder }}/.duplicacy/scripts/pre-backup"
+    mode: "0755"
+
+- name: Backup cron job
+  cron:
+    name: "Duplicacy Backup"
+    value: "cd {{ duplicacy_backup_folder }} && /usr/local/bin/duplicacy backup"
+    minute: "0"
+    hour: "4"
+    state: present

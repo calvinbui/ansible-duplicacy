@@ -1,0 +1,9 @@
+---
+
+duplicacy_version: 2.1.2
+duplicacy_url: https://github.com/gilbertchen/duplicacy/releases/download/v{{ duplicacy_version }}/duplicacy_linux_x64_{{ duplicacy_version }}
+
+duplicacy_dropbox_folder: dropbox://confluence
+duplicacy_dropbox_token: abc123
+
+duplicacy_backup_folder: /opt/confluence/backup
